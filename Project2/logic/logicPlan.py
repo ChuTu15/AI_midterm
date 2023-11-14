@@ -500,13 +500,54 @@ def foodLogicPlan(problem) -> List:
     all_coords = list(itertools.product(range(width + 2), range(height + 2)))
 
     non_wall_coords = [loc for loc in all_coords if loc not in walls_list]
-    actions = [ 'North', 'South', 'East', 'West' ]
+    actions = ["North", "South", "East", "West"]
 
     KB = []
 
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    KB.append(PropSymbolExpr(pacman_str, x0, y0, time =0))
+
+    # Initialize Food[x,y]_t variables with the code
+    # PropSymbolExpr(food_str, x, y, time=t), where each variable is
+    # true if and only if there is a food at (x, y) at time t.
+    for x, y in food:
+        KB.append(PropSymbolExpr(food_str, x, y, time =0))
+
+    for t in range(50):
+        
+        inp_wall = []
+        for x, y in non_wall_coords:
+            inp_wall.append(PropSymbolExpr(pacman_str, x, y, time =t))
+        KB.append(exactlyOne(inp_wall))
+
+        inp_food = []
+        for x, y in non_wall_coords:
+            inp_food.append(PropSymbolExpr(food_str, x, y, time =t))
+
+        
+        model = findModel(
+            conjoin(conjoin(KB), ~disjoin(inp_food)),
+        )
+        if model:
+            return extractActionSequence(model, actions)
+
+        inp_dir = []
+        for dir in actions:
+            inp_dir.append(PropSymbolExpr(dir, time = t))
+        KB.append(exactlyOne(inp_dir))
+
+        transitionModelSentences = []
+        for x, y in non_wall_coords:
+            transitionModelSentences.append(
+                pacmanSuccessorAxiomSingle(x, y, t + 1, walls)
+            )
+        KB += transitionModelSentences
+
+        # food successor axiom
+        for x, y in non_wall_coords:
+            F_0 = PropSymbolExpr(food_str, x, y, time=t)
+            P2 = ~PropSymbolExpr(pacman_str, x, y, time=t)
+            F_1 = PropSymbolExpr(food_str, x, y, time=t + 1)
+            KB.append(F_1 % conjoin(F_0, P2))
 
 #______________________________________________________________________________
 # QUESTION 6
