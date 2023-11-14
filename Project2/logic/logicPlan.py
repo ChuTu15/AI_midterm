@@ -454,7 +454,6 @@ def positionLogicPlan(problem) -> List:
     plan = []
 
     for t in range(50):
-        print("Step %d" % t)
         actual1_position = []
         for x, y in non_wall_coords:
             actual1_position.append(PropSymbolExpr(pacman_str, x, y, time=t))
