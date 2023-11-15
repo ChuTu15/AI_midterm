@@ -34,6 +34,7 @@ description for details.
 Good luck and happy searching!
 """
 
+import sys
 from typing import List, Tuple, Any
 from game import Directions
 from game import Agent
@@ -500,7 +501,27 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    
+    def max_dis(unseen):
+        dis = []
+        for food in unseen:
+            value = dfs_maze(position, food)
+            dis.append(value)
+        if dis:
+            return max(dis)
+        else:
+            return 0
+        
+    def dfs_maze(point1, point2):
+        x1, y1 = point1
+        x2, y2 = point2
+        assert not problem.walls[x1][y1], 'point1 is a wall: ' + str(point1)
+        assert not problem.walls[x2][y2], 'point2 is a wall: ' + str(point2)
+        prob = PositionSearchProblem(problem.startingGameState, start=point1, goal=point2, warn=False, visualize=False)
+        return len(search.bfs(prob))
+    
+    unseen = foodGrid.asList()
+    return max_dis(unseen)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -531,6 +552,7 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        return search.aStarSearch(problem)
         util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -567,6 +589,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+        return self.food[x][y]
         util.raiseNotDefined()
 
 def mazeDistance(point1: Tuple[int, int], point2: Tuple[int, int], gameState: pacman.GameState) -> int:
