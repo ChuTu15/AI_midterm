@@ -643,14 +643,10 @@ def mapping(problem, agent) -> Generator:
             rRes = findModel(conjoin(KB) & PropSymbolExpr(wall_str, x, y))
             wRes = findModel(conjoin(KB) & ~PropSymbolExpr(wall_str, x, y))
             
-            if rRes:
-                if wRes:
-                    known_map[x][y] = -1
-                else:
-                    known_map[x][y] = 1
-            else:
-                if wRes:
-                    known_map[x][y] = 0
+            if rRes and not wRes:
+                known_map[x][y] = 1
+            elif not rRes and wRes:
+                known_map[x][y] = 0
         agent.moveToNextState(agent.actions[t])
         "*** END YOUR CODE HERE ***"
         yield known_map
@@ -681,9 +677,40 @@ def slam(problem, agent) -> Generator:
     KB.append(conjoin(outer_wall_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    KB.append( PropSymbolExpr(pacman_str, pac_x_0, pac_y_0, time = 0))
+    KB.append( ~PropSymbolExpr(wall_str, pac_x_0, pac_y_0))
 
     for t in range(agent.num_timesteps):
+        KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords, known_map))
+        KB.append(SLAMSensorAxioms(t, non_outer_wall_coords))
+        if t != 0:
+            KB.append(SLAMSuccessorAxioms(t, known_map, non_outer_wall_coords))
+        KB.append(numAdjWallsPerceptRules(t, agent.getPercepts()))
+        KB.append(PropSymbolExpr(agent.actions[t], time = t))
+
+        possible_locations = []
+        for x,y in non_outer_wall_coords:
+            wRRes = findModel(conjoin(KB) & PropSymbolExpr(wall_str, x, y))
+            wWRes = findModel(conjoin(KB) & ~PropSymbolExpr(wall_str, x, y))
+
+            if not wRRes and wWRes:
+                known_map[x][y] = 0
+                KB.append(~PropSymbolExpr(wall_str, x, y))
+            elif wRRes and not wWRes:
+                known_map[x][y] = 1
+                KB.append(PropSymbolExpr(wall_str, x, y))
+    
+            pRRes = findModel(conjoin(KB) & PropSymbolExpr(pacman_str, x, y, time = t))
+
+            if pRRes:
+                possible_locations.append((x,y))
+
+        possibleClauses = []
+        for x,y in possible_locations:
+            possibleClauses.append(PropSymbolExpr(pacman_str, x, y, time = t))
+        if len(possibleClauses) > 0:
+            KB.append(disjoin(possibleClauses))
+        agent.moveToNextState(agent.actions[t])
         "*** END YOUR CODE HERE ***"
         yield (known_map, possible_locations)
 
