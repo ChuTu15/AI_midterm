@@ -282,9 +282,9 @@ def pacmanSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[
     # successor_axiom += tuple(causes)
 
     # return successor_axiom
-
-    
-    return PropSymbolExpr(pacman_str, x, y, time=now) % disjoin(possible_causes)
+    pacman_location_now = PropSymbolExpr(pacman_str, x, y, time=now)
+    successor_formula = pacman_location_now % disjoin(possible_causes)
+    return successor_formula
     "*** END YOUR CODE HERE ***"
 
 
