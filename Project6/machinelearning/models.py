@@ -190,8 +190,8 @@ class DigitClassificationModel(object):
             for x, y in dataset.iterate_once(batch_size):
                 loss = self.get_loss(x, y)
                 grads = nn.gradients(loss, self.params)
-                for param, grad in zip(self.params, grads):
-                    param.update(grad, -self.lr)
+                for i in range(len(self.params)):
+                    self.params[i].update(grads[i], -self.lr)
 
 
 class LanguageIDModel(object):
