@@ -212,7 +212,7 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-        self.learningRate = 0.8
+        self.learningRate = 0.3
         paramQuan = 300
 
         self.xInitP = nn.Parameter(self.num_chars, paramQuan)
